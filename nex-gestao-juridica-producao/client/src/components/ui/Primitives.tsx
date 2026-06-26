@@ -1,0 +1,34 @@
+import type { ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
+
+export function Button({ children, onClick, variant = "primary", type = "button", disabled = false, className = "" }: { children: ReactNode; onClick?: () => void; variant?: "primary" | "ghost" | "danger" | "gold"; type?: "button" | "submit"; disabled?: boolean; className?: string }) {
+  return <button type={type} onClick={onClick} disabled={disabled} className={`nex-btn nex-btn-${variant} ${className}`}>{children}</button>;
+}
+
+export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <section className={`panel card-motion ${className}`}>{children}</section>;
+}
+
+export function PanelTitle({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+  return <div className="panel-title"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>{action}</div>;
+}
+
+export function StatusBadge({ children, tone = "neutral" }: { children: ReactNode; tone?: "blue" | "gold" | "green" | "red" | "purple" | "neutral" }) {
+  return <span className={`badge badge-${tone}`}>{children}</span>;
+}
+
+export function Kpi({ icon: Icon, label, value, note, tone = "blue" }: { icon: LucideIcon; label: string; value: ReactNode; note?: string; tone?: "blue" | "gold" | "green" | "red" | "purple" }) {
+  return <div className="kpi-card card-motion"><div className={`kpi-icon kpi-${tone}`}><Icon size={22} /></div><div><p>{label}</p><strong>{value}</strong>{note && <small>{note}</small>}</div></div>;
+}
+
+export function ProgressBar({ value, color = "blue" }: { value: number; color?: "blue" | "gold" | "green" | "red" }) {
+  return <div className="progress"><span className={`progress-${color}`} style={{ width: `${Math.min(100, Math.max(0, value))}%` }} /></div>;
+}
+
+export function Field({ label, children }: { label: string; children: ReactNode }) {
+  return <label className="field"><span>{label}</span>{children}</label>;
+}
+
+export function EmptyState({ title, subtitle, icon: Icon }: { title: string; subtitle: string; icon: LucideIcon }) {
+  return <div className="empty-state"><Icon size={34} /><strong>{title}</strong><p>{subtitle}</p></div>;
+}
