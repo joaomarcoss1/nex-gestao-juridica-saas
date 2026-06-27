@@ -12,6 +12,9 @@ import {
   Zap,
   BarChart3,
   Settings,
+  CalendarClock,
+  FileSpreadsheet,
+  PlugZap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,14 +46,17 @@ export const pages: Array<{ key: PageKey; label: string; icon: LucideIcon; descr
   { key: "dashboard", label: "Meu Painel", icon: LayoutDashboard, description: "Visão executiva" },
   { key: "clientes", label: "Clientes e CRM", icon: Users, description: "Captação e carteira" },
   { key: "processos", label: "Processos", icon: BriefcaseBusiness, description: "Controladoria jurídica" },
-  { key: "tarefas", label: "Tarefas e prazos", icon: ClipboardCheck, description: "Workflow operacional" },
+  { key: "prazos", label: "Prazos", icon: CalendarClock, description: "Controle processual" },
+  { key: "tarefas", label: "Tarefas", icon: ClipboardCheck, description: "Workflow operacional" },
   { key: "financeiro", label: "Financeiro", icon: CircleDollarSign, description: "Receitas e despesas" },
   { key: "precificacao", label: "Precificação", icon: Scale, description: "Honorários técnicos" },
   { key: "documentos", label: "Documentos", icon: FileText, description: "Storage e assinatura" },
   { key: "ponto", label: "Ponto", icon: Fingerprint, description: "Funcionários" },
+  { key: "folha", label: "Folha gerencial", icon: FileSpreadsheet, description: "Holerites e pagamentos" },
   { key: "portal", label: "Portal cliente", icon: Home, description: "Cliente externo" },
   { key: "automacoes", label: "Automações", icon: Zap, description: "Regras internas" },
   { key: "relatorios", label: "Relatórios", icon: BarChart3, description: "BI e exportação" },
+  { key: "integracoes", label: "Integrações", icon: PlugZap, description: "APIs externas" },
   { key: "configuracoes", label: "Configurações", icon: Settings, description: "Segurança e produção" },
 ];
 
@@ -81,6 +87,10 @@ export const defaultState: AppState = {
     { id: P2, cnj: "0800987-77.2026.8.10.0034", client: "Lorraine Lima", opposite: "Banco Alfa", area: "Consumidor", court: "TJMA", class: "Indenização", phase: "Réplica", status: "Em andamento", risk: "Baixo", successChance: 84, value: 18000, fees: 4800, responsible: E2, nextDeadline: inThreeDays, lastMoveDays: 18, progress: 48 },
     { id: P3, cnj: "0002451-88.2026.8.10.0001", client: "Loja Saldão LTDA", opposite: "Fisco Municipal", area: "Tributário", court: "TJMA", class: "Mandado de Segurança", phase: "Petição inicial", status: "Em análise", risk: "Alto", successChance: 58, value: 120000, fees: 18000, responsible: E1, nextDeadline: inSevenDays, lastMoveDays: 127, progress: 22 },
     { id: P4, cnj: "0003020-10.2025.8.10.0034", client: "Carlos Alberto", opposite: "Estado do Maranhão", area: "Criminal", court: "TJMA", class: "Habeas Corpus", phase: "Recurso", status: "Recurso", risk: "Alto", successChance: 51, value: 0, fees: 15500, responsible: E1, nextDeadline: tomorrow, lastMoveDays: 1, progress: 78 },
+  ],
+  deadlines: [
+    { id: "00000000-0000-4000-8000-0000000000p1", processId: P1, client: "Wallace Pereira", responsible: E2, type: "Manifestação sobre documentos", publicationDate: isoToday, awarenessDate: isoToday, startDate: isoToday, days: 5, countType: "Dias úteis", dueDate: inSevenDays, fatal: true, priority: "Crítica", status: "Pendente", notes: "Validar prazo pelo advogado responsável." },
+    { id: "00000000-0000-4000-8000-0000000000p2", processId: P2, client: "Lorraine Lima", responsible: E3, type: "Réplica", publicationDate: isoToday, awarenessDate: tomorrow, startDate: tomorrow, days: 15, countType: "Dias úteis", dueDate: inSevenDays, fatal: false, priority: "Alta", status: "Pendente", notes: "Conferir feriados locais." },
   ],
   tasks: [
     { id: "00000000-0000-4000-8000-0000000000d1", title: "Preparar audiência e roteiro de perguntas", processId: P1, client: "Wallace Pereira", responsible: E2, sector: "Advocacia", priority: "Crítica", status: "Pendente", due: tomorrow, estimatedHours: 4, spentHours: 1.5, checklist: ["Confirmar testemunhas", "Separar documentos", "Roteiro de perguntas"] },
@@ -131,6 +141,18 @@ export const defaultState: AppState = {
     { id: "00000000-0000-4000-8000-0000000000af", ruleId: "00000000-0000-4000-8000-0000000000aa", ruleName: "Cobrança automática de honorários", result: "Lembrete financeiro gerado para parcela pendente", date: tomorrow, status: "Atenção" },
   ],
   pricings: [
-    { id: "00000000-0000-4000-8000-0000000000e6", title: "Defesa criminal completa", client: "Carlos Alberto", processId: P4, area: "Criminal", service: "Defesa criminal", minimum: 12500, recommended: 18500, premium: 24000, entry: 5550, successFee: 0, status: "Enviada", createdAt: isoToday },
+    { id: "00000000-0000-4000-8000-0000000000e6", title: "Defesa criminal completa", client: "Carlos Alberto", processId: P4, area: "Criminal", service: "Defesa criminal", minimum: 12500, recommended: 18500, premium: 24000, entry: 5550, successFee: 0, status: "Enviada", createdAt: isoToday, version: "v1", oabState: "MA", oabYear: 2026 },
+  ],
+  payrolls: [
+    { id: "00000000-0000-4000-8000-000000000090", employeeId: E2, employeeName: "Dra. Larissa Almeida", month: today.getMonth()+1, year: today.getFullYear(), baseSalary: 7200, workedHours: 176, overtime: 4, absences: 0, delays: 0.5, benefits: 450, discounts: 820, commissions: 600, gross: 8250, net: 7430, status: "Rascunho" },
+    { id: "00000000-0000-4000-8000-000000000091", employeeId: E4, employeeName: "Ana Paula Rocha", month: today.getMonth()+1, year: today.getFullYear(), baseSalary: 3600, workedHours: 170, overtime: 2, absences: 0, delays: 1, benefits: 250, discounts: 390, commissions: 0, gross: 3850, net: 3460, status: "Rascunho" },
+  ],
+  integrations: [
+    { id: "00000000-0000-4000-8000-000000000092", provider: "Asaas", status: "Preparado", description: "PIX, boleto e cobrança recorrente. Exige backend seguro e webhook.", requiresBackend: true },
+    { id: "00000000-0000-4000-8000-000000000093", provider: "WhatsApp Business", status: "Preparado", description: "Mensagens e notificações para clientes. Exige token seguro fora do frontend.", requiresBackend: true },
+    { id: "00000000-0000-4000-8000-000000000094", provider: "Tribunais", status: "Preparado", description: "Consulta processual e intimações automáticas dependem de API/robô homologado.", requiresBackend: true },
+  ],
+  auditLogs: [
+    { id: "00000000-0000-4000-8000-000000000095", module: "Sistema", action: "seed", entityId: "demo", user: "Admin", date: isoToday, detail: "Base inicial carregada para demonstração e validação." },
   ],
 };

@@ -1,80 +1,77 @@
--- Nex Gestão Jurídica — políticas RLS base para produção
--- Execute após supabase/schema.sql.
--- Ajuste os claims conforme sua estratégia de autenticação antes de usar com clientes reais.
+-- Nex Gestão Jurídica - RLS completo por organização/perfil
+-- Execute depois de criar as tabelas e configurar Supabase Auth.
 
+create or replace function public.current_profile_org()
+returns uuid
+language sql
+security definer
+stable
+as $$
+  select organization_id from public.users_profiles where auth_user_id = auth.uid() limit 1;
+$$;
+
+create or replace function public.current_profile_role()
+returns text
+language sql
+security definer
+stable
+as $$
+  select role from public.users_profiles where auth_user_id = auth.uid() limit 1;
+$$;
+
+create or replace function public.is_admin_or_partner()
+returns boolean
+language sql
+security definer
+stable
+as $$
+  select coalesce(public.current_profile_role() in ('admin','socio'), false);
+$$;
+
+-- Habilita RLS nas tabelas principais
 alter table organizations enable row level security;
 alter table users_profiles enable row level security;
 alter table employees enable row level security;
 alter table clients enable row level security;
 alter table leads enable row level security;
 alter table processes enable row level security;
+alter table deadlines enable row level security;
 alter table tasks enable row level security;
 alter table financial_entries enable row level security;
 alter table pricing_proposals enable row level security;
-alter table time_records enable row level security;
-alter table time_adjust_requests enable row level security;
-alter table payrolls enable row level security;
 alter table documents enable row level security;
-alter table document_versions enable row level security;
-alter table protocols enable row level security;
-alter table signatures enable row level security;
+alter table time_records enable row level security;
+alter table payrolls enable row level security;
 alter table messages enable row level security;
-alter table notifications enable row level security;
 alter table automation_rules enable row level security;
 alter table automation_runs enable row level security;
+alter table integrations enable row level security;
 alter table audit_logs enable row level security;
 
-create or replace function current_organization_id()
-returns uuid
-language sql stable
-as $$
-  select nullif(auth.jwt() ->> 'organization_id', '')::uuid
-$$;
+-- Política genérica por organização
+create policy if not exists org_select_clients on clients for select using (organization_id = public.current_profile_org());
+create policy if not exists org_modify_clients on clients for all using (organization_id = public.current_profile_org()) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_leads on leads for select using (organization_id = public.current_profile_org());
+create policy if not exists org_modify_leads on leads for all using (organization_id = public.current_profile_org()) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_processes on processes for select using (organization_id = public.current_profile_org());
+create policy if not exists org_modify_processes on processes for all using (organization_id = public.current_profile_org()) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_deadlines on deadlines for select using (organization_id = public.current_profile_org());
+create policy if not exists org_modify_deadlines on deadlines for all using (organization_id = public.current_profile_org()) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_tasks on tasks for select using (organization_id = public.current_profile_org());
+create policy if not exists org_modify_tasks on tasks for all using (organization_id = public.current_profile_org()) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_financial on financial_entries for select using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio','financeiro'));
+create policy if not exists org_modify_financial on financial_entries for all using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio','financeiro')) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_documents on documents for select using (organization_id = public.current_profile_org());
+create policy if not exists org_modify_documents on documents for all using (organization_id = public.current_profile_org()) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_time_records on time_records for select using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio','rh','funcionario'));
+create policy if not exists org_modify_time_records on time_records for all using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio','rh','funcionario')) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_payrolls on payrolls for select using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio','rh','funcionario'));
+create policy if not exists org_modify_payrolls on payrolls for all using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio','rh')) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_automations on automation_rules for select using (organization_id = public.current_profile_org());
+create policy if not exists org_modify_automations on automation_rules for all using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio','controladoria')) with check (organization_id = public.current_profile_org());
+create policy if not exists org_select_audit on audit_logs for select using (organization_id = public.current_profile_org() and public.current_profile_role() in ('admin','socio'));
+create policy if not exists org_insert_audit on audit_logs for insert with check (organization_id = public.current_profile_org() or organization_id is null);
 
-create or replace function current_profile_role()
-returns text
-language sql stable
-as $$
-  select coalesce(auth.jwt() ->> 'role', 'cliente')
-$$;
-
--- Políticas genéricas por empresa. Para produção avançada, refine por módulo e perfil.
-do $$
-declare
-  t text;
-begin
-  foreach t in array array[
-    'users_profiles','employees','clients','leads','processes','tasks','financial_entries','pricing_proposals',
-    'time_records','payrolls','documents','messages','notifications','automation_rules','automation_runs','audit_logs'
-  ] loop
-    execute format('drop policy if exists %I on %I', 'company_isolation_select', t);
-    execute format('create policy %I on %I for select using (organization_id = current_organization_id() or current_profile_role() in (''admin'',''socio''))', 'company_isolation_select', t);
-    execute format('drop policy if exists %I on %I', 'company_isolation_insert', t);
-    execute format('create policy %I on %I for insert with check (organization_id = current_organization_id() or current_profile_role() in (''admin'',''socio''))', 'company_isolation_insert', t);
-    execute format('drop policy if exists %I on %I', 'company_isolation_update', t);
-    execute format('create policy %I on %I for update using (organization_id = current_organization_id() or current_profile_role() in (''admin'',''socio''))', 'company_isolation_update', t);
-  end loop;
-end $$;
-
-alter table app_state_snapshots enable row level security;
-drop policy if exists company_isolation_select on app_state_snapshots;
-create policy company_isolation_select on app_state_snapshots for select using (company_id = current_organization_id() or current_profile_role() in ('admin','socio'));
-drop policy if exists company_isolation_insert on app_state_snapshots;
-create policy company_isolation_insert on app_state_snapshots for insert with check (company_id = current_organization_id() or current_profile_role() in ('admin','socio'));
-drop policy if exists company_isolation_update on app_state_snapshots;
-create policy company_isolation_update on app_state_snapshots for update using (company_id = current_organization_id() or current_profile_role() in ('admin','socio'));
-
--- Storage: documentos privados por organização/cliente. Ajuste o prefixo das pastas conforme seu fluxo de produção.
--- A versão atual do front usa documentos/<documento-id>.jpg para o scanner do portal.
-create policy if not exists "Usuários autenticados podem enviar documentos" on storage.objects
-for insert to authenticated
-with check (bucket_id = 'documentos');
-
-create policy if not exists "Usuários autenticados podem ler documentos" on storage.objects
-for select to authenticated
-using (bucket_id = 'documentos');
-
-create policy if not exists "Usuários autenticados podem atualizar documentos" on storage.objects
-for update to authenticated
-using (bucket_id = 'documentos')
-with check (bucket_id = 'documentos');
+-- Storage privado de documentos: cada usuário autenticado só acessa arquivos da própria organização via paths controlados.
+create policy if not exists documentos_auth_upload on storage.objects for insert to authenticated with check (bucket_id = 'documentos');
+create policy if not exists documentos_auth_select on storage.objects for select to authenticated using (bucket_id = 'documentos');

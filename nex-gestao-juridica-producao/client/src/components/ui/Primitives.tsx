@@ -1,8 +1,9 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { X } from "lucide-react";
 
-export function Button({ children, onClick, variant = "primary", type = "button", disabled = false, className = "" }: { children: ReactNode; onClick?: () => void; variant?: "primary" | "ghost" | "danger" | "gold"; type?: "button" | "submit"; disabled?: boolean; className?: string }) {
-  return <button type={type} onClick={onClick} disabled={disabled} className={`nex-btn nex-btn-${variant} ${className}`}>{children}</button>;
+export function Button({ children, onClick, variant = "primary", type = "button", disabled = false, className = "" }: { children: ReactNode; onClick?: () => void | Promise<void>; variant?: "primary" | "ghost" | "danger" | "gold"; type?: "button" | "submit"; disabled?: boolean; className?: string }) {
+  return <button type={type} onClick={() => void onClick?.()} disabled={disabled} className={`nex-btn nex-btn-${variant} ${className}`}>{children}</button>;
 }
 
 export function Panel({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -31,4 +32,26 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 
 export function EmptyState({ title, subtitle, icon: Icon }: { title: string; subtitle: string; icon: LucideIcon }) {
   return <div className="empty-state"><Icon size={34} /><strong>{title}</strong><p>{subtitle}</p></div>;
+}
+
+export function Modal({ open, title, subtitle, children, footer, onClose }: { open: boolean; title: string; subtitle?: string; children: ReactNode; footer?: ReactNode; onClose: () => void }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    document.body.classList.add("modal-open");
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.classList.remove("modal-open"); window.removeEventListener("keydown", onKey); };
+  }, [open, onClose]);
+  if (!open) return null;
+  return <div className="modal-backdrop" role="dialog" aria-modal="true" onMouseDown={onClose}>
+    <div className="modal-card" onMouseDown={(event) => event.stopPropagation()}>
+      <div className="modal-head"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div><button className="icon-btn" onClick={onClose} aria-label="Fechar"><X size={18} /></button></div>
+      <div className="modal-body">{children}</div>
+      {footer && <div className="modal-footer">{footer}</div>}
+    </div>
+  </div>;
+}
+
+export function ActionBar({ children }: { children: ReactNode }) {
+  return <div className="row-actions action-bar">{children}</div>;
 }

@@ -453,3 +453,115 @@ create index if not exists idx_documents_storage_path on documents(storage_path)
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('documentos', 'documentos', false, 10485760, array['image/jpeg','image/png','application/pdf'])
 on conflict (id) do update set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+-- Evolução SaaS completa: prazos, soft delete, logs e campos operacionais
+create table if not exists deadlines (
+  id uuid primary key default uuid_generate_v4(),
+  organization_id uuid references organizations(id) on delete cascade,
+  process_id uuid references processes(id),
+  client_id uuid references clients(id),
+  type text not null,
+  responsible_id uuid references users_profiles(id),
+  publication_date date,
+  awareness_date date,
+  start_date date,
+  days integer default 0,
+  count_type text default 'Dias úteis',
+  due_date date,
+  fatal boolean default false,
+  priority text default 'Média',
+  status text default 'pendente',
+  proof text,
+  notes text,
+  archived_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+create index if not exists idx_deadlines_org_due on deadlines(organization_id, due_date, status);
+
+alter table employees add column if not exists archived_at timestamptz;
+alter table clients add column if not exists archived_at timestamptz;
+alter table leads add column if not exists archived_at timestamptz;
+alter table processes add column if not exists archived_at timestamptz;
+alter table tasks add column if not exists archived_at timestamptz;
+alter table financial_entries add column if not exists archived_at timestamptz;
+alter table time_records add column if not exists archived_at timestamptz;
+alter table documents add column if not exists archived_at timestamptz;
+alter table protocols add column if not exists archived_at timestamptz;
+alter table signatures add column if not exists archived_at timestamptz;
+alter table messages add column if not exists archived_at timestamptz;
+alter table automation_rules add column if not exists archived_at timestamptz;
+alter table automation_runs add column if not exists archived_at timestamptz;
+alter table pricing_proposals add column if not exists archived_at timestamptz;
+alter table payrolls add column if not exists archived_at timestamptz;
+alter table integrations add column if not exists archived_at timestamptz;
+
+alter table employees add column if not exists email text;
+alter table employees add column if not exists phone text;
+alter table employees add column if not exists oab text;
+alter table financial_entries add column if not exists paid_amount numeric(14,2);
+alter table financial_entries add column if not exists recurrence text;
+alter table financial_entries add column if not exists installment integer default 1;
+alter table financial_entries add column if not exists installments integer default 1;
+alter table financial_entries add column if not exists attachment text;
+alter table processes add column if not exists last_move_days integer default 0;
+alter table processes add column if not exists progress integer default 0;
+alter table tasks add column if not exists comments jsonb default '[]';
+alter table automation_rules add column if not exists description text;
+alter table automation_rules add column if not exists recurrence text default 'Evento';
+alter table automation_rules add column if not exists next_run_at timestamptz;
+alter table automation_rules add column if not exists failures integer default 0;
+alter table automation_rules add column if not exists responsible_id uuid references users_profiles(id);
+alter table pricing_proposals add column if not exists title text;
+alter table pricing_proposals add column if not exists version text default 'v1';
+alter table pricing_proposals add column if not exists oab_state text;
+alter table pricing_proposals add column if not exists oab_year integer;
+alter table payrolls add column if not exists base_salary numeric(14,2) default 0;
+alter table documents add column if not exists rejection_comment text;
+alter table integrations add column if not exists description text;
+
+create table if not exists automation_conditions (
+  id uuid primary key default uuid_generate_v4(),
+  automation_rule_id uuid references automation_rules(id) on delete cascade,
+  field text,
+  operator text,
+  value text,
+  created_at timestamptz default now()
+);
+create table if not exists automation_actions (
+  id uuid primary key default uuid_generate_v4(),
+  automation_rule_id uuid references automation_rules(id) on delete cascade,
+  action_type text,
+  params jsonb default '{}',
+  created_at timestamptz default now()
+);
+create table if not exists automation_run_logs (
+  id uuid primary key default uuid_generate_v4(),
+  automation_run_id uuid references automation_runs(id) on delete cascade,
+  level text default 'info',
+  message text,
+  payload jsonb default '{}',
+  created_at timestamptz default now()
+);
+create table if not exists payroll_items (
+  id uuid primary key default uuid_generate_v4(),
+  payroll_id uuid references payrolls(id) on delete cascade,
+  type text,
+  description text,
+  amount numeric(14,2) default 0,
+  created_at timestamptz default now()
+);
+create table if not exists employee_benefits (
+  id uuid primary key default uuid_generate_v4(),
+  employee_id uuid references employees(id) on delete cascade,
+  description text,
+  amount numeric(14,2) default 0,
+  active boolean default true
+);
+create table if not exists employee_discounts (
+  id uuid primary key default uuid_generate_v4(),
+  employee_id uuid references employees(id) on delete cascade,
+  description text,
+  amount numeric(14,2) default 0,
+  active boolean default true
+);

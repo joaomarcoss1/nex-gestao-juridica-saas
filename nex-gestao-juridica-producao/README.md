@@ -148,3 +148,50 @@ VITE_COMPANY_NAME="NexLabs"
 ## Observação honesta de produção
 
 Esta versão está pronta para rodar, demonstrar, subir na Vercel e conectar ao Supabase. O schema/RLS/serviços foram preparados e as vulnerabilidades do pacote ativo foram corrigidas. Antes de colocar clientes reais pagando em operação, valide as regras de negócio específicas do escritório, políticas LGPD, cálculo de prazos processuais, assinatura eletrônica e permissões com dados reais.
+
+
+## Versão SaaS Completa Final
+
+Esta versão inclui CRUD real por módulo, páginas de prazos, folha gerencial e integrações, services por entidade, schema/RLS atualizados e Vercel Cron preparado para automações internas.
+
+### Rodar no VS Code
+
+```bash
+npm install --legacy-peer-deps
+npm run dev
+```
+
+### Validar produção
+
+```bash
+npm run check
+npm run build
+npm audit --audit-level=high
+```
+
+### Vercel
+
+- Framework: Vite
+- Root Directory: `nex-gestao-juridica-producao`
+- Install Command: `npm install --legacy-peer-deps`
+- Build Command: `npm run build`
+- Output Directory: `dist/public`
+
+### Supabase
+
+Execute nesta ordem:
+
+1. `supabase/schema.sql`
+2. `supabase/rls.sql`
+3. `supabase/seed.sql`
+
+Variáveis públicas do frontend:
+
+```env
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+VITE_APP_NAME=Nex Gestão Jurídica
+VITE_COMPANY_NAME=NexLabs
+```
+
+Nunca coloque `SUPABASE_SERVICE_ROLE_KEY`, tokens de pagamento, WhatsApp ou tribunais no frontend. Use backend/Edge Functions.

@@ -40,7 +40,7 @@ export function useNexState() {
     if (!loading) saveLocalState(state);
   }, [loading, state]);
 
-  const commit = useCallback(async <K extends EntityName>(entity: K, value: AppState[K][number], action: "create" | "update" = "create") => {
+  const commit = useCallback(async <K extends EntityName>(entity: K, value: AppState[K][number], action: "create" | "update" | "archive" | "restore" = "create") => {
     let nextState: AppState | null = null;
     setState((current) => {
       const list = current[entity] as Array<AppState[K][number]>;
@@ -54,7 +54,7 @@ export function useNexState() {
     });
     try {
       await persistEntity(entity, value, nextState ?? state);
-      await auditLog(action === "create" ? (entity === "clients" ? "create_cliente" : entity === "processes" ? "create_processo" : entity === "documents" ? "upload_documento" : entity === "finances" ? "alterar_financeiro" : entity === "automations" || entity === "automationRuns" ? "executar_automacao" : "alterar_financeiro") : (entity === "clients" ? "update_cliente" : entity === "processes" ? "update_processo" : "alterar_financeiro"), { module: entity, entityId: (value as { id: string }).id, value });
+      await auditLog(action === "create" ? (entity === "clients" ? "create_cliente" : entity === "processes" ? "create_processo" : entity === "documents" ? "upload_documento" : entity === "automations" || entity === "automationRuns" ? "executar_automacao" : "alterar_financeiro") : (entity === "clients" ? "update_cliente" : entity === "processes" ? "update_processo" : "alterar_financeiro"), { module: entity, entityId: (value as { id: string }).id, value, action });
       setSyncStatus(databaseMode === "production" ? "online" : "demo");
     } catch (error) {
       console.error(error);
@@ -74,5 +74,19 @@ export function useNexState() {
     }
   }, []);
 
-  return { state, loading, syncStatus, commit, remove, notify, toasts };
+
+  const archive = useCallback(async <K extends EntityName>(entity: K, item: AppState[K][number]) => {
+    const id = (item as { id: string }).id;
+    const archived = { ...(item as object), archivedAt: new Date().toISOString() } as AppState[K][number];
+    await commit(entity, archived, "archive");
+    notify({ tone: "info", title: "Item arquivado", message: `Registro ${id} permanece recuperável.` });
+  }, [commit, notify]);
+
+  const restore = useCallback(async <K extends EntityName>(entity: K, item: AppState[K][number]) => {
+    const restored = { ...(item as object), archivedAt: undefined } as AppState[K][number];
+    await commit(entity, restored, "restore");
+    notify({ tone: "success", title: "Item restaurado" });
+  }, [commit, notify]);
+
+  return { state, loading, syncStatus, commit, remove, archive, restore, notify, toasts };
 }

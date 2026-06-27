@@ -1,32 +1,87 @@
-import { useState } from "react";
-import { BadgeCheck, MoreVertical, Plus, UserCheck, Users } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BadgeCheck, Edit3, MoreVertical, Plus, Search, Trash2, UserCheck, Users } from "lucide-react";
 import type { Client, FeaturePageProps, Lead } from "@/types/app";
 import { stages } from "@/data/defaultState";
-import { Button, Field, Panel, PanelTitle, StatusBadge } from "@/components/ui/Primitives";
+import { ActionBar, Button, Field, Panel, PanelTitle, StatusBadge } from "@/components/ui/Primitives";
+import { EntityFormModal, type FieldConfig } from "@/components/forms/EntityFormModal";
 import { money, statusTone, uid } from "@/utils/format";
 
-export function ClientesPage({ state, commit, notify }: FeaturePageProps) {
-  const [leadName, setLeadName] = useState("");
-  const [clientName, setClientName] = useState("");
+const origins = ["Manual", "Instagram", "WhatsApp", "Site", "Indicação", "Google", "Escritório físico", "Tráfego pago", "Cliente antigo", "Outro"];
+const areas = ["Cível", "Criminal", "Trabalhista", "Família", "Consumidor", "Empresarial", "Previdenciário", "Tributário", "Outro"];
+const responsibleOptions = ["e1", "e2", "e3", "e4"];
 
-  async function addLead() {
-    if (!leadName.trim()) return;
-    const lead: Lead = { id: uid("lead"), name: leadName, phone: "", origin: "Manual", area: "Cível", stage: "Novo lead", value: 0, nextContact: new Date().toISOString().slice(0, 10), responsible: "e1" };
-    await commit("leads", lead);
-    setLeadName("");
-    notify({ tone: "success", title: "Lead criado", message: "Funil comercial atualizado e salvo." });
+const emptyClient: Client = { id: "", type: "PF", name: "", document: "", city: "", origin: "Atendimento", status: "Prospecto", responsible: "e1", processes: 0, lifetimeValue: 0, email: "", phone: "", address: "" };
+const emptyLead: Lead = { id: "", name: "", phone: "", origin: "Manual", area: "Cível", stage: "Novo lead", value: 0, nextContact: new Date().toISOString().slice(0, 10), responsible: "e1" };
+
+export function ClientesPage({ state, commit, remove, notify }: FeaturePageProps) {
+  const [query, setQuery] = useState("");
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+
+  const filteredClients = useMemo(() => {
+    const normalized = query.toLowerCase();
+    return state.clients.filter((client) => [client.name, client.document, client.city, client.origin, client.status, client.email, client.phone].some((value) => String(value ?? "").toLowerCase().includes(normalized)));
+  }, [query, state.clients]);
+
+  const filteredLeads = useMemo(() => {
+    const normalized = query.toLowerCase();
+    return state.leads.filter((lead) => [lead.name, lead.phone, lead.origin, lead.area, lead.stage].some((value) => String(value ?? "").toLowerCase().includes(normalized)));
+  }, [query, state.leads]);
+
+  const clientFields: FieldConfig<Client>[] = [
+    { key: "type", label: "Tipo", kind: "select", options: ["PF", "PJ"] },
+    { key: "name", label: "Nome / razão social", required: true, placeholder: "Cliente completo" },
+    { key: "document", label: "CPF/CNPJ", placeholder: "000.000.000-00" },
+    { key: "email", label: "E-mail", kind: "email" },
+    { key: "phone", label: "WhatsApp / telefone" },
+    { key: "city", label: "Cidade" },
+    { key: "address", label: "Endereço", kind: "textarea" },
+    { key: "origin", label: "Origem", kind: "select", options: origins },
+    { key: "status", label: "Status", kind: "select", options: ["Ativo", "Prospecto", "Inativo"] },
+    { key: "responsible", label: "Responsável", kind: "select", options: responsibleOptions },
+    { key: "processes", label: "Qtd. processos", kind: "number" },
+    { key: "lifetimeValue", label: "Valor total do cliente", kind: "number" },
+  ];
+
+  const leadFields: FieldConfig<Lead>[] = [
+    { key: "name", label: "Nome do lead", required: true },
+    { key: "phone", label: "WhatsApp / telefone" },
+    { key: "origin", label: "Origem", kind: "select", options: origins },
+    { key: "area", label: "Área de interesse", kind: "select", options: areas },
+    { key: "stage", label: "Etapa do funil", kind: "select", options: stages },
+    { key: "value", label: "Valor estimado", kind: "number" },
+    { key: "nextContact", label: "Próximo contato", kind: "date" },
+    { key: "responsible", label: "Responsável", kind: "select", options: responsibleOptions },
+  ];
+
+  async function saveClient(client: Client) {
+    const isNew = !state.clients.some((item) => item.id === client.id);
+    await commit("clients", { ...client, id: client.id || uid("client") }, isNew ? "create" : "update");
+    setEditingClient(null);
+    notify({ tone: "success", title: isNew ? "Cliente criado" : "Cliente atualizado", message: "Cadastro salvo e disponível para processos, documentos e financeiro." });
   }
 
-  async function addClient() {
-    if (!clientName.trim()) return;
-    const client: Client = { id: uid("client"), type: "PF", name: clientName, document: "", city: "", origin: "Atendimento", status: "Prospecto", responsible: "e1", processes: 0, lifetimeValue: 0 };
-    await commit("clients", client);
-    setClientName("");
-    notify({ tone: "success", title: "Cliente salvo", message: "Cadastro gravado no módulo normalizado." });
+  async function saveLead(lead: Lead) {
+    const isNew = !state.leads.some((item) => item.id === lead.id);
+    await commit("leads", { ...lead, id: lead.id || uid("lead") }, isNew ? "create" : "update");
+    setEditingLead(null);
+    notify({ tone: "success", title: isNew ? "Lead criado" : "Lead atualizado", message: "Funil comercial salvo com dados editáveis." });
+  }
+
+  async function deleteClient(client: Client) {
+    if (!confirm(`Excluir o cliente ${client.name}?`)) return;
+    await remove("clients", client.id);
+    notify({ tone: "info", title: "Cliente removido", message: "O registro foi excluído do cadastro." });
+  }
+
+  async function deleteLead(lead: Lead) {
+    if (!confirm(`Excluir o lead ${lead.name}?`)) return;
+    await remove("leads", lead.id);
+    notify({ tone: "info", title: "Lead removido" });
   }
 
   async function convertLead(lead: Lead) {
-    const client: Client = { id: uid("client"), type: "PF", name: lead.name, document: "", city: "", origin: lead.origin, status: "Ativo", responsible: lead.responsible, processes: 0, lifetimeValue: lead.value, phone: lead.phone };
+    const client: Client = { id: uid("client"), type: "PF", name: lead.name, document: "", city: "", origin: lead.origin, status: "Ativo", responsible: lead.responsible, processes: 0, lifetimeValue: lead.value, phone: lead.phone, email: "", address: "" };
     await commit("clients", client);
     await commit("leads", { ...lead, stage: "Contrato fechado" }, "update");
     notify({ tone: "success", title: "Lead convertido", message: `${lead.name} virou cliente ativo.` });
@@ -39,40 +94,44 @@ export function ClientesPage({ state, commit, notify }: FeaturePageProps) {
       <Panel className="stat-panel"><BadgeCheck /><strong>{money(state.leads.reduce((a, l) => a + l.value, 0))}</strong><span>potencial em negociação</span></Panel>
       <Panel className="stat-panel"><Plus /><strong>{state.clients.filter((c) => c.status === "Ativo").length}</strong><span>carteira ativa</span></Panel>
     </div>
+
     <Panel>
-      <PanelTitle title="CRM jurídico" subtitle="Funil dinâmico com ações de conversão e persistência por tabela." />
-      <div className="quick-form">
-        <Field label="Novo lead"><input value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Nome do lead" /></Field>
-        <Button onClick={addLead}><Plus size={16} /> Adicionar lead</Button>
-      </div>
+      <PanelTitle title="CRM e clientes editáveis" subtitle="Cadastro completo, edição, exclusão, conversão de lead e busca simples." action={<ActionBar><Button variant="ghost" onClick={() => setEditingLead({ ...emptyLead, id: uid("lead") })}><Plus size={16}/> Novo lead</Button><Button onClick={() => setEditingClient({ ...emptyClient, id: uid("client") })}><Plus size={16}/> Novo cliente</Button></ActionBar>} />
+      <div className="search-row"><Search size={17}/><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nome, CPF/CNPJ, cidade, origem, status ou telefone" /></div>
+    </Panel>
+
+    <Panel>
+      <PanelTitle title="Funil comercial" subtitle="Arraste futuramente; hoje cada card é editável e conversível." />
       <div className="kanban">
         {stages.map((stage) => <div className="kanban-col" key={stage}>
           <h3>{stage}</h3>
-          {state.leads.filter((l) => l.stage === stage).map((lead) => <div className="kanban-card floating-card" key={lead.id}>
+          {filteredLeads.filter((l) => l.stage === stage).map((lead) => <div className="kanban-card floating-card" key={lead.id}>
             <strong>{lead.name}</strong>
-            <small>{lead.origin} · {lead.area}</small>
+            <small>{lead.origin} · {lead.area} · {lead.phone || "sem telefone"}</small>
             <span>{money(lead.value)}</span>
             <p>Próximo contato: {lead.nextContact || "sem data"}</p>
-            <div className="row-actions"><Button variant="ghost" onClick={() => convertLead(lead)}>Converter</Button><MoreVertical size={17}/></div>
+            <ActionBar><Button variant="ghost" onClick={() => convertLead(lead)}>Converter</Button><Button variant="ghost" onClick={() => setEditingLead(lead)}><Edit3 size={15}/> Editar</Button><Button variant="danger" onClick={() => deleteLead(lead)}><Trash2 size={15}/></Button><MoreVertical size={17}/></ActionBar>
           </div>)}
         </div>)}
       </div>
     </Panel>
+
     <Panel>
-      <PanelTitle title="Clientes PF/PJ" subtitle="Cadastro centralizado para processos, documentos, financeiro e portal." />
-      <div className="quick-form">
-        <Field label="Novo cliente"><input value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="Nome ou razão social" /></Field>
-        <Button onClick={addClient}><Plus size={16} /> Salvar cliente</Button>
-      </div>
+      <PanelTitle title="Clientes PF/PJ" subtitle="Base central para processos, financeiro, documentos e portal." />
       <div className="data-grid">
-        {state.clients.map((client) => <article className="data-card floating-card" key={client.id}>
+        {filteredClients.map((client) => <article className="data-card floating-card" key={client.id}>
           <div className="avatar-circle">{client.name.slice(0, 2).toUpperCase()}</div>
           <strong>{client.name}</strong>
           <small>{client.type} · {client.document || "documento pendente"}</small>
+          <p>{client.email || "sem e-mail"} · {client.phone || "sem telefone"}</p>
           <p>{client.city || "Cidade não informada"}</p>
           <div className="card-footer"><StatusBadge tone={statusTone(client.status)}>{client.status}</StatusBadge><span>{money(client.lifetimeValue)}</span></div>
+          <ActionBar><Button variant="ghost" onClick={() => setEditingClient(client)}><Edit3 size={15}/> Editar</Button><Button variant="danger" onClick={() => deleteClient(client)}><Trash2 size={15}/> Excluir</Button></ActionBar>
         </article>)}
       </div>
     </Panel>
+
+    {editingClient && <EntityFormModal<Client> open={!!editingClient} title={state.clients.some((item) => item.id === editingClient.id) ? "Editar cliente" : "Novo cliente"} subtitle="Todos os dados do cliente podem ser alterados e salvos." value={editingClient} fields={clientFields} onClose={() => setEditingClient(null)} onSave={saveClient} />}
+    {editingLead && <EntityFormModal<Lead> open={!!editingLead} title={state.leads.some((item) => item.id === editingLead.id) ? "Editar lead" : "Novo lead"} subtitle="Atualize etapa, origem, valor, responsável e próximo contato." value={editingLead} fields={leadFields} onClose={() => setEditingLead(null)} onSave={saveLead} />}
   </div>;
 }

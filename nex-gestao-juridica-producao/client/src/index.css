@@ -885,3 +885,30 @@ td { color:#dce6f5; }
 @keyframes toastIn { from { opacity:0; transform: translateY(8px) scale(.98); } to { opacity:1; transform: translateY(0) scale(1); } }
 @media (max-width: 1180px) { .kpi-row, .data-grid, .process-grid, .integration-grid, .ai-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } .dashboard-layout, .dashboard-layout.secondary, .result-grid, .scanner-layout { grid-template-columns: 1fr; } .pricing-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
 @media (max-width: 760px) { .app-shell, .app-shell.collapsed { grid-template-columns: 1fr; } .sidebar { position: relative; height: auto; } .sidebar nav { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); max-height: 230px; } .main-area { height:auto; min-height:100vh; } .topbar, .page-head { flex-wrap:wrap; height:auto; padding:14px; } .search { width:100%; } .top-actions { margin-left:0; width:100%; flex-wrap:wrap; } .content { padding:16px; } .kpi-row, .data-grid, .process-grid, .pricing-grid, .config-grid { grid-template-columns: 1fr; } .quick-form { flex-direction: column; } }
+
+/* Final UX pass: editable SaaS workflows */
+body.modal-open { overflow: hidden; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(3, 9, 18, .72); backdrop-filter: blur(10px); animation: modalFade .18s ease both; }
+.modal-card { width: min(980px, 100%); max-height: min(86vh, 860px); overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; border: 1px solid rgba(164,180,206,.18); background: linear-gradient(180deg, rgba(13,25,40,.98), rgba(7,14,25,.98)); box-shadow: 0 30px 90px rgba(0,0,0,.46); border-radius: 24px; animation: modalUp .22s ease both; }
+.modal-head { display:flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding: 20px 22px 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.modal-head h2 { margin:0; font-size: 20px; }
+.modal-head p { margin: 6px 0 0; color: var(--nex-muted); font-size: 13px; }
+.modal-body { overflow: auto; padding: 18px 22px; }
+.modal-footer { display:flex; justify-content:flex-end; gap:10px; padding: 14px 22px 20px; border-top: 1px solid rgba(255,255,255,.08); background: rgba(0,0,0,.12); }
+.form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.form-grid .field textarea, .field textarea { min-height: 92px; padding: 12px 13px; resize: vertical; }
+.form-grid .field:nth-child(7), .form-grid .field:has(textarea) { grid-column: span 2; }
+.action-bar { flex-wrap: wrap; }
+.search-row { display:flex; align-items:center; gap:10px; width:100%; border:1px solid rgba(164,180,206,.14); background: rgba(255,255,255,.045); border-radius:16px; padding: 0 12px; min-height: 46px; margin-top: 12px; }
+.search-row input { flex:1; min-width: 0; border:0; outline:0; background: transparent; color:#fff; font: inherit; }
+.search-row input::placeholder { color: #6e8098; }
+.hash-cell { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--nex-muted); }
+.pin-floating { position: fixed; z-index: 230; right: 42px; bottom: 104px; width: min(360px, calc(100vw - 84px)); border:1px solid rgba(246,181,46,.26); border-radius:18px; padding:12px; background: rgba(13,25,40,.97); box-shadow: 0 20px 60px rgba(0,0,0,.38); animation: toastIn .22s ease both; }
+.pin-floating .field { margin:0; }
+.pin-floating input { width:100%; border:1px solid var(--nex-border); background: rgba(255,255,255,.055); color:white; border-radius:14px; min-height:42px; outline:none; padding: 0 13px; }
+.responsive-table table td small { display:block; margin-top:3px; color: var(--nex-muted); }
+.nex-btn { will-change: transform; }
+.kanban-card, .data-card, .process-card, .task-row, .panel { transform: translateZ(0); }
+@keyframes modalFade { from { opacity:0; } to { opacity:1; } }
+@keyframes modalUp { from { opacity:0; transform: translateY(18px) scale(.985); } to { opacity:1; transform: translateY(0) scale(1); } }
+@media (max-width: 760px) { .form-grid { grid-template-columns: 1fr; } .form-grid .field:nth-child(7), .form-grid .field:has(textarea) { grid-column: auto; } .modal-backdrop { padding: 10px; align-items: end; } .modal-card { max-height: 92vh; border-radius: 22px 22px 0 0; } .modal-footer { flex-direction: column-reverse; } .pin-floating { left: 12px; right: 12px; bottom: 82px; width: auto; } }
