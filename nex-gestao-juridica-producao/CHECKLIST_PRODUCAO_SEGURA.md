@@ -1,0 +1,27 @@
+# Checklist Produção Segura
+
+- [ ] `npm install --legacy-peer-deps`
+- [ ] `npm run check`
+- [ ] `npm run build`
+- [ ] `npm audit --audit-level=high`
+- [ ] Login Supabase Auth
+- [ ] Logout
+- [ ] Recuperação de senha
+- [ ] Perfil carregado em `users_profiles`
+- [ ] Organização vem do perfil, não de constante fixa
+- [ ] RLS sem `create policy if not exists`
+- [ ] RLS usa `users_profiles`
+- [ ] Admin/Sócio acessam organização completa
+- [ ] Financeiro acessa somente financeiro e relatórios financeiros
+- [ ] RH acessa ponto/folha
+- [ ] Cliente não acessa dados de outro cliente
+- [ ] Storage privado no bucket `documentos`
+- [ ] URL assinada para download
+- [ ] Auditoria registra upload/download/edição/exclusão
+- [ ] Detalhe do cliente funcionando
+- [ ] Detalhe do processo funcionando
+- [ ] Prazos com aviso jurídico
+- [ ] Relatórios exportam CSV
+- [ ] Vercel deploy OK
+- [ ] Variáveis de ambiente configuradas
+- [ ] Service Role apenas em backend/Vercel Functions

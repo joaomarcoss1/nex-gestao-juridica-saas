@@ -1,0 +1,35 @@
+{
+  "name": "nex-gestao-juridica",
+  "version": "4.2.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "start": "vite preview --host 127.0.0.1 --port 4173",
+    "check": "tsc --noEmit",
+    "audit": "npm audit --audit-level=high",
+    "lint": "tsc --noEmit",
+    "validate": "npm run check && npm run build && npm run audit",
+    "test:logic": "npm run check"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "recharts": "^2.15.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^24.7.0",
+    "@types/react": "^19.2.1",
+    "@types/react-dom": "^19.2.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
+    "typescript": "5.9.3",
+    "vite": "^7.1.7"
+  }
+}
