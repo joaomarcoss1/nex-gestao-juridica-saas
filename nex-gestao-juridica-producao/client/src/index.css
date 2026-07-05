@@ -1531,3 +1531,81 @@ table td { border-color: rgba(143,171,207,.09) !important; }
   body { overscroll-behavior-y: none; }
   .topbar { padding-top: env(safe-area-inset-top); height: calc(58px + env(safe-area-inset-top)) !important; }
 }
+
+/* =========================================================
+   v4.4 — Correção de alinhamento da barra superior
+   Mantém a estética azul executiva, mas impede quebra/segunda linha.
+   ========================================================= */
+@media (min-width: 901px) {
+  .topbar {
+    display: grid !important;
+    grid-template-columns: minmax(240px, 460px) minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 0 18px 0 22px !important;
+    overflow: hidden !important;
+  }
+  .topbar .search {
+    width: 100% !important;
+    max-width: 460px !important;
+    min-width: 240px !important;
+  }
+  .top-actions {
+    justify-self: end !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    gap: 8px !important;
+  }
+  .profile-mini {
+    min-width: 0 !important;
+    max-width: clamp(150px, 18vw, 270px) !important;
+    overflow: hidden !important;
+  }
+  .profile-mini strong,
+  .profile-mini span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  .topbar .nex-btn {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    height: 34px !important;
+    line-height: 1 !important;
+  }
+  .topbar-signout {
+    min-width: 70px !important;
+  }
+  .topbar-primary {
+    min-width: 114px !important;
+  }
+  .sync-pill {
+    flex: 0 0 auto !important;
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  .top-actions > svg,
+  .topbar-chevron,
+  .user-avatar {
+    flex: 0 0 auto !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1260px) {
+  .topbar {
+    grid-template-columns: minmax(220px, 360px) minmax(0, 1fr) !important;
+  }
+  .profile-mini { max-width: 170px !important; }
+  .topbar-primary { display: none !important; }
+}
+
+@media (min-width: 901px) and (max-width: 1060px) {
+  .topbar { grid-template-columns: minmax(180px, 280px) minmax(0, 1fr) !important; }
+  .profile-mini, .topbar-chevron, .top-actions > svg { display: none !important; }
+  .sync-pill { padding-inline: 9px !important; }
+}

@@ -44,6 +44,15 @@ export function AppShell({ page, setPage, syncStatus, profile, children }: { pag
   const mobilePrimaryPages = useMemo(() => mobilePrimaryKeys.map((key) => visiblePages.find((item) => item.key === key)).filter(Boolean) as typeof visiblePages, [mobilePrimaryKeys, visiblePages]);
   const mobileExtraPages = useMemo(() => visiblePages.filter((item) => !mobilePrimaryKeys.includes(item.key)), [mobilePrimaryKeys, visiblePages]);
   const Icon = current.icon;
+  const profileRole = String(profile?.role ?? "perfil").replaceAll("_", " ");
+  const isGlobalMasterProfile = ["admin_master", "admin_master_global"].includes(String(profile?.role ?? "").toLowerCase());
+  const profileSubtitle = isGlobalMasterProfile
+    ? "Admin Master Global"
+    : profile?.organizationRegistrationCode && profile.organizationRegistrationCode !== "GLOBAL"
+      ? `${profileRole} · Matrícula ${profile.organizationRegistrationCode}`
+      : isDemo
+        ? `demo · ${profileRole}`
+        : profileRole;
 
   function go(next: PageKey) {
     setMobileMenuOpen(false);
@@ -97,10 +106,10 @@ export function AppShell({ page, setPage, syncStatus, profile, children }: { pag
           <span className={`sync-pill ${syncStatus}`}><Cloud size={15} /> {syncStatus === "online" ? "Online" : syncStatus === "offline" ? "Offline" : "Demo"}</span>
           <Bell size={18} />
           <div className="user-avatar">{(profile?.name ?? "NX").slice(0, 2).toUpperCase()}</div>
-          <div className="profile-mini"><strong>{profile?.name ?? "Usuário"}</strong><span>{profile?.organizationRegistrationCode && profile.organizationRegistrationCode !== "GLOBAL" ? `${String(profile?.role ?? "perfil").replaceAll("_", " ")} · Matrícula ${profile.organizationRegistrationCode}` : isDemo ? `demo · ${String(profile?.role ?? "").replaceAll("_", " ")}` : String(profile?.role ?? "perfil").replaceAll("_", " ")}</span></div>
-          <ChevronDown size={16} className="desktop-only" />
-          {canCreateTask && <Button onClick={() => go("tarefas")} className="desktop-only"><Plus size={16} /> Nova ação</Button>}
-          <Button variant="ghost" onClick={signOut}><LogOut size={16}/> Sair</Button>
+          <div className="profile-mini"><strong>{profile?.name ?? "Usuário"}</strong><span>{profileSubtitle}</span></div>
+          <ChevronDown size={16} className="desktop-only topbar-chevron" />
+          {canCreateTask && <Button onClick={() => go("tarefas")} className="desktop-only topbar-primary"><Plus size={16} /> Nova ação</Button>}
+          <Button variant="ghost" onClick={signOut} className="topbar-signout"><LogOut size={16}/> Sair</Button>
         </div>
       </header>
       <section className="page-head">

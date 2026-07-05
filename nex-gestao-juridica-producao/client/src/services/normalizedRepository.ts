@@ -48,6 +48,23 @@ const tableNames: Partial<Record<EntityName, string>> = {
   reportExports: "report_exports",
 };
 
+function isRecoverableSupabaseReadError(error: unknown) {
+  const candidate = error as { code?: string; message?: string; details?: string };
+  const code = String(candidate?.code ?? "");
+  const message = `${candidate?.message ?? ""} ${candidate?.details ?? ""}`.toLowerCase();
+  return ["42P01", "42703", "42883", "42501", "PGRST200", "PGRST204"].includes(code)
+    || message.includes("does not exist")
+    || message.includes("schema cache")
+    || message.includes("permission denied")
+    || message.includes("function public.current_profile")
+    || message.includes("function public.nex_current");
+}
+
+function describeSupabaseError(error: unknown) {
+  const candidate = error as { code?: string; message?: string };
+  return `${candidate?.code ? candidate.code + ": " : ""}${candidate?.message ?? String(error)}`;
+}
+
 function cloneState(state: AppState): AppState {
   return JSON.parse(JSON.stringify(state)) as AppState;
 }
@@ -218,7 +235,13 @@ export async function loadNormalizedState(): Promise<AppState> {
     const globalMaster = ["admin_master", "admin_master_global"].includes(String(role).toLowerCase());
     if (orgId && !globalMaster && !["organizations", "automation_runs"].includes(table)) query = query.eq("organization_id", orgId);
     const { data, error } = await query;
-    if (error) throw error;
+    if (error) {
+      if (isRecoverableSupabaseReadError(error)) {
+        console.warn(`[Nex] Leitura Supabase ignorada para ${table}: ${describeSupabaseError(error)}. Aplique a migration v4.4 para sincronização completa.`);
+        continue;
+      }
+      throw error;
+    }
     next = mapFromSupabase(next, entity, data ?? []);
   }
   return next;
