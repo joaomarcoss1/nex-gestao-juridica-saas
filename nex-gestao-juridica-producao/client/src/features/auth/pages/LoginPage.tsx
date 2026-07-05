@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BriefcaseBusiness, Building2, IdCard, LockKeyhole, Mail, ShieldCheck, Sparkles, UserCog, UserRound } from "lucide-react";
+import { Building2, IdCard, LockKeyhole, Mail, ShieldCheck, UserCog, UserRound, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/Primitives";
 import { useAuth } from "@/hooks/useAuth";
 import { RegisterPage } from "./RegisterPage";
@@ -7,17 +7,17 @@ import { ResetPasswordPage } from "./ResetPasswordPage";
 
 type LoginProfile = "admin_master" | "funcionario" | "cliente";
 
-const loginProfiles: Array<{ key: LoginProfile; title: string; label: string; icon: typeof ShieldCheck; description: string; email: string }> = [
-  { key: "admin_master", title: "Admin Master Global", label: "Sem matrícula", icon: UserCog, description: "Cria empresas, admins, suporte global, auditoria e relatórios executivos.", email: "joaomarcosgpp@hotmail.com" },
-  { key: "funcionario", title: "Admin/Funcionário", label: "Com matrícula", icon: BriefcaseBusiness, description: "Equipe interna entra com e-mail, senha e matrícula base da empresa.", email: "" },
-  { key: "cliente", title: "Cliente", label: "Nome + CPF", icon: UserRound, description: "Portal simplificado por nome completo e CPF, sem senha e sem acesso interno.", email: "" },
+const accessOptions: Array<{ key: LoginProfile; title: string; icon: typeof ShieldCheck }> = [
+  { key: "admin_master", title: "Admin Master", icon: UserCog },
+  { key: "funcionario", title: "Admin / Funcionário", icon: UsersRound },
+  { key: "cliente", title: "Cliente", icon: UserRound },
 ];
 
 export function LoginPage({ initialError }: { initialError?: string }) {
-  const { signIn, signInClientPortal, isDemo } = useAuth();
+  const { signIn, signInClientPortal } = useAuth();
   const [selectedProfile, setSelectedProfile] = useState<LoginProfile>("admin_master");
-  const [email, setEmail] = useState("joaomarcosgpp@hotmail.com");
-  const [registrationCode, setRegistrationCode] = useState("3272026");
+  const [email, setEmail] = useState("");
+  const [registrationCode, setRegistrationCode] = useState("");
   const [clientFullName, setClientFullName] = useState("");
   const [clientCpf, setClientCpf] = useState("");
   const [password, setPassword] = useState("");
@@ -30,7 +30,7 @@ export function LoginPage({ initialError }: { initialError?: string }) {
 
   function chooseProfile(profile: LoginProfile) {
     setSelectedProfile(profile);
-    if (profile !== "cliente") setEmail(loginProfiles.find((item) => item.key === profile)?.email || email);
+    setError("");
   }
 
   async function submit(event: React.FormEvent) {
@@ -47,40 +47,57 @@ export function LoginPage({ initialError }: { initialError?: string }) {
     }
   }
 
-  return <main className="auth-screen auth-screen-premium">
-    <section className="auth-card auth-card-premium floating-card">
-      <div className="auth-hero-brand">
-        <img src="/nexlabs-logo.jpeg" alt="Logo NexLabs" />
-        <div><strong>Nex Gestão Jurídica</strong><span>v4.2 · multiempresa premium</span></div>
+  return <main className="auth-screen auth-screen-v43">
+    <section className="auth-panel-v43" aria-label="Login Nex Gestão Jurídica">
+      <div className="auth-brand-v43">
+        <img src="/nexlabs-logo.jpeg" alt="NexLabs" />
+        <div>
+          <strong>Nex Gestão Jurídica</strong>
+          <span>Powered by NexLabs</span>
+        </div>
       </div>
-      <div className="auth-headline">
-        <span><Sparkles size={15}/> Plataforma jurídica segura</span>
-        <h1>Entrar com perfil, matrícula e isolamento de dados</h1>
-        <p>Admin Master entra sem matrícula. Equipe interna valida a matrícula da empresa. Cliente acessa apenas pelo nome completo e CPF cadastrados.</p>
+
+      <div className="auth-title-v43">
+        <h1>Acesse sua conta</h1>
+        <p>Entre no painel jurídico com segurança.</p>
       </div>
-      <div className="login-role-grid" role="tablist" aria-label="Tipo de acesso">
-        {loginProfiles.map((profile) => {
-          const Icon = profile.icon;
-          return <button type="button" key={profile.key} className={selectedProfile === profile.key ? "selected" : ""} onClick={() => chooseProfile(profile.key)}>
-            <Icon size={22}/><strong>{profile.title}</strong><span>{profile.label}</span><small>{profile.description}</small>
+
+      <div className="access-tabs-v43" role="tablist" aria-label="Tipo de acesso">
+        {accessOptions.map((option) => {
+          const Icon = option.icon;
+          return <button
+            type="button"
+            role="tab"
+            aria-selected={selectedProfile === option.key}
+            key={option.key}
+            className={selectedProfile === option.key ? "active" : ""}
+            onClick={() => chooseProfile(option.key)}
+          >
+            <Icon size={17}/>
+            <span>{option.title}</span>
           </button>;
         })}
       </div>
-      {isDemo ? <div className="security-note"><ShieldCheck size={16}/> Modo demo: use a matrícula 3272026 para simular empresa.</div> : <div className="security-note"><ShieldCheck size={16}/> Em produção, as permissões e o vínculo de empresa são validados no Supabase/RLS.</div>}
+
       {error && <div className="form-error">{error}</div>}
-      <form onSubmit={submit} className="auth-form">
+
+      <form onSubmit={submit} className="auth-form auth-form-v43">
         {selectedProfile === "cliente" ? <>
-          <label><UserRound size={16}/> Nome completo do cliente<input value={clientFullName} onChange={(e) => setClientFullName(e.target.value)} required placeholder="Digite exatamente o nome cadastrado" autoComplete="name" /></label>
+          <label><UserRound size={16}/> Nome completo<input value={clientFullName} onChange={(e) => setClientFullName(e.target.value)} required placeholder="Nome cadastrado" autoComplete="name" /></label>
           <label><IdCard size={16}/> CPF<input value={clientCpf} onChange={(e) => setClientCpf(e.target.value)} required placeholder="000.000.000-00" inputMode="numeric" autoComplete="off" /></label>
-          <Button type="submit" disabled={loading}>{loading ? "Validando portal..." : "Acessar portal do cliente"}</Button>
+          <Button type="submit" disabled={loading}>{loading ? "Validando..." : "Acessar portal"}</Button>
         </> : <>
-          <label><Mail size={16}/> E-mail<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required placeholder="admin@escritorio.com" autoComplete="email" /></label>
-          <label><LockKeyhole size={16}/> Senha<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required placeholder="sua senha" autoComplete="current-password" /></label>
-          {selectedProfile === "funcionario" && <label><Building2 size={16}/> Matrícula da empresa<input value={registrationCode} onChange={(e) => setRegistrationCode(e.target.value)} required placeholder="3272026" inputMode="numeric" autoComplete="off" /></label>}
-          <Button type="submit" disabled={loading}>{loading ? "Entrando..." : selectedProfile === "admin_master" ? "Entrar como Admin Master" : "Entrar com matrícula"}</Button>
+          <label><Mail size={16}/> E-mail<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required placeholder="seuemail@dominio.com" autoComplete="email" /></label>
+          <label><LockKeyhole size={16}/> Senha<input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required placeholder="Digite sua senha" autoComplete="current-password" /></label>
+          {selectedProfile === "funcionario" && <label><Building2 size={16}/> Matrícula da empresa<input value={registrationCode} onChange={(e) => setRegistrationCode(e.target.value)} required placeholder="Ex.: 3272026" inputMode="numeric" autoComplete="off" /></label>}
+          <Button type="submit" disabled={loading}>{loading ? "Entrando..." : "Entrar"}</Button>
         </>}
       </form>
-      <div className="auth-links"><button onClick={() => setMode("register")}>Criar primeiro acesso / funcionário</button><button onClick={() => setMode("reset")}>Recuperar senha</button></div>
+
+      <div className="auth-links auth-links-v43">
+        <button type="button" onClick={() => setMode("reset")}>Esqueceu sua senha?</button>
+        <button type="button" onClick={() => setMode("register")}>Primeiro acesso</button>
+      </div>
     </section>
   </main>;
 }

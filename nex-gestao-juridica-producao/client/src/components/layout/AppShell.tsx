@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Bell, ChevronDown, Cloud, LogOut, Menu, Plus, Search, ShieldCheck } from "lucide-react";
+import { Bell, ChevronDown, Cloud, LogOut, Menu, Plus, Search, ShieldCheck, X } from "lucide-react";
 import type { AuthProfile, PageKey, PermissionKey } from "@/types/app";
 import { pages } from "@/data/defaultState";
 import { Button } from "@/components/ui/Primitives";
@@ -76,7 +76,7 @@ export function AppShell({ page, setPage, syncStatus, profile, children }: { pag
         <button className={mobileMenuOpen ? "active" : ""} onClick={() => setMobileMenuOpen((value) => !value)}><Menu size={19}/><span>Menu</span></button>
       </div>
       {mobileMenuOpen && <div className="mobile-menu-drawer" role="dialog" aria-label="Menu completo">
-        <div className="mobile-menu-head"><strong>Nex Gestão Jurídica</strong><button onClick={() => setMobileMenuOpen(false)}><Menu size={18}/></button></div>
+        <div className="mobile-menu-head"><strong>Nex Gestão Jurídica</strong><button onClick={() => setMobileMenuOpen(false)} aria-label="Fechar menu"><X size={18}/></button></div>
         <div className="mobile-menu-grid">
           {mobileExtraPages.map((item) => {
             const ItemIcon = item.icon;
@@ -92,9 +92,9 @@ export function AppShell({ page, setPage, syncStatus, profile, children }: { pag
     </aside>
     <main className="main-area">
       <header className="topbar">
-        <div className="search"><Search size={17} /><input placeholder="Busca rápida visual — use os filtros de cada módulo" title="A busca global avançada será integrada ao Supabase; os módulos já possuem filtros próprios." /></div>
+        <div className="search"><Search size={17} /><input placeholder="Pesquisar no sistema" title="Use os filtros de cada módulo para buscas detalhadas." /></div>
         <div className="top-actions">
-          <span className={`sync-pill ${syncStatus}`}><Cloud size={15} /> {syncStatus === "online" ? "Supabase online" : syncStatus === "offline" ? "Local seguro" : "Modo demo"}</span>
+          <span className={`sync-pill ${syncStatus}`}><Cloud size={15} /> {syncStatus === "online" ? "Online" : syncStatus === "offline" ? "Offline" : "Demo"}</span>
           <Bell size={18} />
           <div className="user-avatar">{(profile?.name ?? "NX").slice(0, 2).toUpperCase()}</div>
           <div className="profile-mini"><strong>{profile?.name ?? "Usuário"}</strong><span>{profile?.organizationRegistrationCode && profile.organizationRegistrationCode !== "GLOBAL" ? `${String(profile?.role ?? "perfil").replaceAll("_", " ")} · Matrícula ${profile.organizationRegistrationCode}` : isDemo ? `demo · ${String(profile?.role ?? "").replaceAll("_", " ")}` : String(profile?.role ?? "perfil").replaceAll("_", " ")}</span></div>
@@ -104,8 +104,8 @@ export function AppShell({ page, setPage, syncStatus, profile, children }: { pag
         </div>
       </header>
       <section className="page-head">
-        <div><Icon size={25} /><div><h1>{current.label}</h1><p>{current.description} · Plataforma corporativa NexLabs</p></div></div>
-        <div className="head-actions"><Button variant="ghost" onClick={() => window.print()}>Exportar visão</Button>{canOpenAutomations && <Button variant="gold" onClick={() => go("automacoes")}>Automatizar</Button>}</div>
+        <div><Icon size={25} /><div><h1>{current.label}</h1><p>{current.description}</p></div></div>
+        <div className="head-actions"><Button variant="ghost" onClick={() => window.print()}>Exportar</Button>{canOpenAutomations && <Button variant="gold" onClick={() => go("automacoes")}>Automatizar</Button>}</div>
       </section>
       <div className="content page-transition" key={`${page}-${location.pathname}`}>{children}</div>
     </main>
