@@ -190,7 +190,45 @@ export function hydrateRelations(state: AppState): AppState {
 
 function mapFromSupabase(state: AppState, entity: EntityName, rows: any[]): AppState {
   const next = { ...state };
-  if (entity === "organizations") next.organizations = rows.map((r) => ({ id: r.id, registrationCode: r.registration_code ?? r.payload?.registrationCode ?? "", name: r.name ?? r.payload?.name ?? "", tradeName: r.trade_name ?? r.payload?.tradeName ?? "", document: r.document ?? r.payload?.document ?? "", email: r.email ?? r.payload?.email ?? "", phone: r.phone ?? r.payload?.phone ?? "", responsibleName: r.responsible_name ?? r.payload?.responsibleName ?? "", responsibleEmail: r.responsible_email ?? r.payload?.responsibleEmail ?? "", city: r.city ?? r.payload?.city ?? r.headquarters_city ?? "", state: r.state ?? r.payload?.state ?? "", address: r.address ?? r.payload?.address ?? "", plan: r.plan ?? r.payload?.plan ?? "Profissional", headquartersCity: r.headquarters_city ?? r.payload?.headquartersCity ?? "", status: r.access_blocked ? "Bloqueada" : (r.status ?? r.payload?.status ?? "Ativa"), accessBlocked: Boolean(r.access_blocked ?? r.payload?.accessBlocked), blockedReason: r.blocked_reason ?? r.payload?.blockedReason ?? "", createdBy: r.created_by ?? r.payload?.createdBy ?? undefined, createdAt: String(r.created_at ?? "").slice(0, 10), updatedAt: String(r.updated_at ?? "").slice(0, 10), archivedAt: r.archived_at ?? undefined }));
+  if (entity === "organizations") next.organizations = rows.map((r) => ({
+    id: r.id,
+    registrationCode: r.registration_code ?? r.payload?.registrationCode ?? "",
+    name: r.name ?? r.payload?.name ?? "",
+    tradeName: r.trade_name ?? r.payload?.tradeName ?? "",
+    document: r.document ?? r.payload?.document ?? "",
+    email: r.email ?? r.payload?.email ?? "",
+    phone: r.phone ?? r.payload?.phone ?? "",
+    responsibleName: r.responsible_name ?? r.payload?.responsibleName ?? "",
+    responsibleEmail: r.responsible_email ?? r.payload?.responsibleEmail ?? "",
+    city: r.city ?? r.payload?.city ?? r.headquarters_city ?? "",
+    state: r.state ?? r.payload?.state ?? "",
+    address: r.address ?? r.payload?.address ?? "",
+    plan: r.plan ?? r.payload?.plan ?? "Profissional",
+    headquartersCity: r.headquarters_city ?? r.payload?.headquartersCity ?? "",
+    status: r.access_blocked ? "Bloqueada" : (r.status ?? r.payload?.status ?? "Ativa"),
+    accessBlocked: Boolean(r.access_blocked ?? r.payload?.accessBlocked),
+    blockedReason: r.blocked_reason ?? r.payload?.blockedReason ?? "",
+    createdBy: r.created_by ?? r.payload?.createdBy ?? undefined,
+    supportMode: Boolean(r.support_mode ?? r.payload?.supportMode),
+    stripeCustomerId: r.stripe_customer_id ?? r.payload?.stripeCustomerId ?? undefined,
+    stripeSubscriptionId: r.stripe_subscription_id ?? r.payload?.stripeSubscriptionId ?? undefined,
+    subscriptionStatus: r.subscription_status ?? r.payload?.subscriptionStatus ?? undefined,
+    billingEmail: r.billing_email ?? r.payload?.billingEmail ?? undefined,
+    billingMode: r.billing_mode ?? r.payload?.billingMode ?? (r.billing_exempt_forever ? "lifetime_exempt" : r.manual_trial_enabled ? "manual_trial" : "stripe"),
+    manualTrialEnabled: Boolean(r.manual_trial_enabled ?? r.payload?.manualTrialEnabled),
+    manualTrialStartedAt: r.manual_trial_started_at ?? r.payload?.manualTrialStartedAt ?? undefined,
+    manualTrialDisabledAt: r.manual_trial_disabled_at ?? r.payload?.manualTrialDisabledAt ?? undefined,
+    manualTrialDisabledBy: r.manual_trial_disabled_by ?? r.payload?.manualTrialDisabledBy ?? undefined,
+    manualTrialReason: r.manual_trial_reason ?? r.payload?.manualTrialReason ?? undefined,
+    billingExemptForever: Boolean(r.billing_exempt_forever ?? r.payload?.billingExemptForever),
+    billingExemptReason: r.billing_exempt_reason ?? r.payload?.billingExemptReason ?? undefined,
+    billingExemptGrantedAt: r.billing_exempt_granted_at ?? r.payload?.billingExemptGrantedAt ?? undefined,
+    billingExemptGrantedBy: r.billing_exempt_granted_by ?? r.payload?.billingExemptGrantedBy ?? undefined,
+    billingNotes: r.billing_notes ?? r.payload?.billingNotes ?? undefined,
+    createdAt: String(r.created_at ?? "").slice(0, 10),
+    updatedAt: String(r.updated_at ?? "").slice(0, 10),
+    archivedAt: r.archived_at ?? undefined
+  }));
   if (entity === "employees") next.employees = rows.map((r) => ({ id: r.id, organizationId: r.organization_id ?? undefined, name: r.name, cpf: r.cpf ?? "", pinHash: r.pin_hash ?? "", role: r.cargo ?? "Funcionário", sector: r.setor ?? "Administrativo", email: r.email ?? "", phone: r.phone ?? "", oab: r.oab ?? "", baseSalary: Number(r.salario_base ?? 0), hourlyRate: Number(r.valor_hora ?? 0), schedule: { entrada: r.jornada?.entrada ?? "08:00", saida_intervalo: r.jornada?.saida_intervalo ?? "12:00", retorno_intervalo: r.jornada?.retorno_intervalo ?? "14:00", saida_final: r.jornada?.saida_final ?? "18:00" }, mode: r.jornada?.mode ?? "Presencial", status: r.status === "ativo" ? "Ativo" : capStatus(r.status, "Ativo") as any, score: Number(r.jornada?.score ?? 100), archivedAt: r.archived_at ?? undefined }));
   if (entity === "clients") next.clients = rows.map((r) => ({ id: r.id, organizationId: r.organization_id ?? undefined, type: r.type ?? "PF", name: r.name, document: r.document ?? "", city: r.address?.city ?? r.city ?? "", origin: r.origin ?? "", status: r.status === "ativo" ? "Ativo" : capStatus(r.status, "Ativo") as any, responsible: r.responsible_id ?? "", processes: 0, lifetimeValue: 0, email: r.email ?? "", phone: r.phone ?? r.whatsapp ?? "", whatsapp: r.whatsapp ?? r.phone ?? "", address: r.address?.street ?? r.address?.full ?? "", notes: r.notes ?? "", archivedAt: r.archived_at ?? undefined }));
   if (entity === "leads") next.leads = rows.map((r) => ({ id: r.id, name: r.name, type: r.type ?? "PF", phone: r.phone ?? "", email: r.email ?? "", origin: r.origin ?? "", area: r.area ?? "", demandType: r.demand_type ?? "", stage: r.stage ?? "Novo lead", value: Number(r.estimated_value ?? 0), nextContact: r.next_contact ?? "", responsible: r.responsible_id ?? "", notes: r.notes ?? "", lossReason: r.loss_reason ?? "", archivedAt: r.archived_at ?? undefined }));
@@ -251,7 +289,42 @@ function toRemotePayload(entity: EntityName, item: any, state: AppState) {
   const orgId = item.organizationId ?? getCurrentOrganizationId();
   if (!orgId && entity !== "organizations") throw new Error("Perfil sem organização carregada. Faça login novamente antes de salvar no Supabase.");
   const base = { id: item.id, organization_id: orgId, archived_at: item.archivedAt ?? null } as Record<string, unknown>;
-  if (entity === "organizations") return { id: item.id, registration_code: item.registrationCode, name: item.name, trade_name: item.tradeName ?? item.name, document: item.document ?? "", email: item.email ?? "", phone: item.phone ?? "", responsible_name: item.responsibleName ?? "", responsible_email: item.responsibleEmail ?? "", city: item.city ?? "", state: item.state ?? "", address: item.address ?? "", plan: item.plan ?? "Profissional", status: item.status ?? "Ativa", access_blocked: Boolean(item.accessBlocked), blocked_reason: item.blockedReason ?? "", created_by: item.createdBy ?? null, payload: item, archived_at: item.archivedAt ?? null };
+  if (entity === "organizations") return {
+    id: item.id,
+    registration_code: item.registrationCode,
+    name: item.name,
+    trade_name: item.tradeName ?? item.name,
+    document: item.document ?? "",
+    email: item.email ?? "",
+    phone: item.phone ?? "",
+    responsible_name: item.responsibleName ?? "",
+    responsible_email: item.responsibleEmail ?? "",
+    city: item.city ?? "",
+    state: item.state ?? "",
+    address: item.address ?? "",
+    plan: item.plan ?? "Profissional",
+    status: item.status ?? "Ativa",
+    access_blocked: Boolean(item.accessBlocked),
+    blocked_reason: item.blockedReason ?? "",
+    created_by: item.createdBy ?? null,
+    stripe_customer_id: item.stripeCustomerId ?? null,
+    stripe_subscription_id: item.stripeSubscriptionId ?? null,
+    subscription_status: item.subscriptionStatus ?? (item.billingExemptForever ? "exempt_forever" : item.manualTrialEnabled ? "manual_trial" : null),
+    billing_email: item.billingEmail ?? item.email ?? null,
+    billing_mode: item.billingMode ?? (item.billingExemptForever ? "lifetime_exempt" : item.manualTrialEnabled ? "manual_trial" : "stripe"),
+    manual_trial_enabled: Boolean(item.manualTrialEnabled),
+    manual_trial_started_at: item.manualTrialStartedAt ?? null,
+    manual_trial_disabled_at: item.manualTrialDisabledAt ?? null,
+    manual_trial_disabled_by: item.manualTrialDisabledBy ?? null,
+    manual_trial_reason: item.manualTrialReason ?? null,
+    billing_exempt_forever: Boolean(item.billingExemptForever),
+    billing_exempt_reason: item.billingExemptReason ?? null,
+    billing_exempt_granted_at: item.billingExemptGrantedAt ?? null,
+    billing_exempt_granted_by: item.billingExemptGrantedBy ?? null,
+    billing_notes: item.billingNotes ?? null,
+    payload: item,
+    archived_at: item.archivedAt ?? null
+  };
   if (entity === "employees") return { ...base, name: item.name, cpf: item.cpf, cargo: item.role, setor: item.sector, email: item.email ?? null, phone: item.phone ?? null, salario_base: item.baseSalary, valor_hora: item.hourlyRate, jornada: { ...item.schedule, mode: item.mode, score: item.score }, pin_hash: item.pinHash, status: String(item.status).toLowerCase() };
   if (entity === "clients") return { ...base, type: item.type, name: item.name, document: item.document, email: item.email, phone: item.phone, whatsapp: item.whatsapp ?? item.phone, address: { city: item.city, street: item.address }, origin: item.origin, status: String(item.status).toLowerCase(), notes: item.notes ?? "" };
   if (entity === "leads") return { ...base, name: item.name, type: item.type ?? "PF", phone: item.phone, email: item.email, origin: item.origin, area: item.area, demand_type: item.demandType, stage: item.stage, estimated_value: item.value, next_contact: item.nextContact || null, notes: item.notes ?? "", loss_reason: item.lossReason ?? "" };

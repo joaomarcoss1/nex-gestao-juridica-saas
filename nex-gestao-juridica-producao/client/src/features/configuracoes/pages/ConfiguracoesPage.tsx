@@ -1,4 +1,4 @@
-import { CheckCircle2, Database, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
+import { CheckCircle2, Database, LockKeyhole, Palette, PhoneCall, ShieldCheck, Sparkles } from "lucide-react";
 import { InviteUserPage } from "@/features/auth/pages/InviteUserPage";
 import type { FeaturePageProps } from "@/types/app";
 import { Kpi, Panel, PanelTitle, StatusBadge } from "@/components/ui/Primitives";
@@ -20,6 +20,7 @@ export function ConfiguracoesPage({ state }: FeaturePageProps) {
       <div className="responsive-table"><table><thead><tr><th>Item</th><th>Status</th><th>Detalhe</th></tr></thead><tbody>{checks.map(([item,status,detail]) => <tr key={item}><td>{item}</td><td><StatusBadge tone="green">{status}</StatusBadge></td><td>{detail}</td></tr>)}</tbody></table></div>
     </Panel>
     <InviteUserPage />
+    <Panel><PanelTitle title="Personalização do escritório" subtitle="Prepare a marca do cliente para portal, relatórios e comunicações."/><div className="office-brand-grid"><div><Palette/> Logo, cores e nome fantasia</div><div><PhoneCall/> WhatsApp, e-mail e endereço do escritório</div><div><ShieldCheck/> Texto de boas-vindas do portal</div><div><Sparkles/> Assinatura NexLabs em relatórios</div></div></Panel>
     <Panel><PanelTitle title="Ambiente Vercel/Supabase" subtitle="Para produção real, crie o projeto Supabase, rode schema.sql + rls.sql + seed.sql e preencha as variáveis."/><div className="config-grid"><div><CheckCircle2/> npm run check</div><div><CheckCircle2/> npm run build</div><div><CheckCircle2/> npm audit --audit-level=high</div><div><CheckCircle2/> vercel.json configurado</div></div></Panel>
   </div>;
 }

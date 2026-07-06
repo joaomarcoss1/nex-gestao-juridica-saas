@@ -7,6 +7,7 @@ import { defaultState } from "@/data/defaultState";
 import { applyMutationToState, buildSideEffects, deriveOperationalStatuses, validateEntityBeforeCommit } from "@/services/businessRules.service";
 import { assertEntityActionAllowed, scopeStateForProfile } from "@/services/accessControl.service";
 import { loadPublicPortalState, portalPersistDocument, portalPersistMessage, portalPersistProposalStatus } from "@/services/portal.service";
+import { ensureOrganizationScope, humanizeSupabaseError } from "@/services/productionReadiness.service";
 
 function actionName(entity: EntityName, action: string) {
   const prefix = action === "create" ? "create" : action === "archive" ? "archive" : action === "restore" ? "restore" : "update";
@@ -66,12 +67,12 @@ export function useNexState(profile: AuthProfile | null, reloadKey = "demo") {
         if (databaseMode === "production") {
           setState(emptyState());
           setSyncStatus("offline");
-          notify({ tone: "error", title: "Supabase não sincronizou", message: error instanceof Error ? error.message : "Revise migrations/RLS. Dados reais não serão salvos localmente em produção." });
+          notify({ tone: "error", title: "Sincronização não concluída", message: humanizeSupabaseError(error) });
           return;
         }
         setState(scopeStateForProfile(deriveOperationalStatuses(defaultState), profile));
         setSyncStatus("offline");
-        notify({ tone: "error", title: "Modo local", message: "O app continuou em modo local apenas para desenvolvimento." });
+        notify({ tone: "info", title: "Modo demonstração", message: "Sem Supabase configurado, o app usa apenas dados de demonstração para validação visual." });
       })
       .finally(() => mounted && setLoading(false));
     return () => { mounted = false; };
@@ -89,26 +90,27 @@ export function useNexState(profile: AuthProfile | null, reloadKey = "demo") {
       notify({ tone: "error", title: "Ação bloqueada", message });
       throw error;
     }
-    const validation = validateEntityBeforeCommit(entity, value);
+    const scopedValue = ensureOrganizationScope(entity, value, profile);
+    const validation = validateEntityBeforeCommit(entity, scopedValue);
     if (!validation.ok) {
       notify({ tone: "error", title: "Registro não salvo", message: validation.errors.join(" ") });
       throw new Error(validation.errors.join(" "));
     }
 
     const previousState = state;
-    const sideEffects = isPublicPortal(profile) ? [] : buildSideEffects(entity, value, action, state);
-    let draftState = applyMutationToState(state, entity, value);
+    const sideEffects = isPublicPortal(profile) ? [] : buildSideEffects(entity, scopedValue, action, state);
+    let draftState = applyMutationToState(state, entity, scopedValue);
     for (const effect of sideEffects) draftState = applyMutationToState(draftState, effect.entity, effect.value as never);
     const nextState = scopeStateForProfile(deriveOperationalStatuses(draftState), profile);
     setState(nextState);
 
     try {
       if (isPublicPortal(profile)) {
-        await persistPublicPortalEntity(entity, value);
+        await persistPublicPortalEntity(entity, scopedValue);
       } else {
-        await persistEntity(entity, value, nextState);
+        await persistEntity(entity, scopedValue, nextState);
         for (const effect of sideEffects) await persistEntity(effect.entity, effect.value as never, nextState);
-        await auditLog(actionName(entity, action), { module: entity, entityId: (value as { id: string }).id, value, action, sideEffects: sideEffects.map((e) => e.entity) });
+        await auditLog(actionName(entity, action), { module: entity, entityId: (scopedValue as { id: string }).id, value: scopedValue, action, sideEffects: sideEffects.map((e) => e.entity) });
       }
       setSyncStatus(databaseMode === "production" ? "online" : "demo");
     } catch (error) {
@@ -116,7 +118,7 @@ export function useNexState(profile: AuthProfile | null, reloadKey = "demo") {
       if (databaseMode === "production") {
         setState(previousState);
         setSyncStatus("offline");
-        const message = error instanceof Error ? error.message : "O Supabase recusou a gravação.";
+        const message = humanizeSupabaseError(error);
         notify({ tone: "error", title: "Não salvo no Supabase", message: `${message} A alteração foi desfeita para impedir dados locais falsos.` });
         throw error;
       }
@@ -146,7 +148,7 @@ export function useNexState(profile: AuthProfile | null, reloadKey = "demo") {
       if (databaseMode === "production") {
         setState(previousState);
         setSyncStatus("offline");
-        notify({ tone: "error", title: "Não excluído no Supabase", message: "A exclusão foi desfeita porque o banco recusou a operação." });
+        notify({ tone: "error", title: "Não excluído no Supabase", message: humanizeSupabaseError(error) });
         throw error;
       }
       setSyncStatus("offline");

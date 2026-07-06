@@ -5,6 +5,7 @@ import { Field, Kpi, Panel, PanelTitle, StatusBadge } from "@/components/ui/Prim
 import { money, statusTone } from "@/utils/format";
 import { useAuth } from "@/hooks/useAuth";
 import { isMasterAdmin } from "@/lib/permissions";
+import { buildReadinessChecks } from "@/services/productionReadiness.service";
 
 export function DashboardPage({ state, setPage }: FeaturePageProps) {
   const { profile } = useAuth();
@@ -28,6 +29,7 @@ export function DashboardPage({ state, setPage }: FeaturePageProps) {
     { month: "Jun", receita: revenue, despesa: expenses },
   ];
   const areaData = Object.entries(state.processes.reduce<Record<string, number>>((acc, p) => { acc[p.area] = (acc[p.area] ?? 0) + 1; return acc; }, {})).map(([area, total]) => ({ area, total }));
+  const readinessChecks = buildReadinessChecks(state, profile, "online");
 
   if (isMasterAdmin(profile)) {
     const activeCompanies = state.organizations.filter((company) => company.status === "Ativa" && !company.accessBlocked).length;
@@ -55,6 +57,15 @@ export function DashboardPage({ state, setPage }: FeaturePageProps) {
           </div>
         </Panel>
       </div>
+
+      <Panel>
+        <PanelTitle title="Prontidão comercial v4.5" subtitle="Checklist estrutural para demonstração, piloto pago e primeiras vendas assistidas." />
+        <div className="readiness-grid">{readinessChecks.map((check) => <div className={`readiness-card ${check.level}`} key={check.key}>
+          <strong>{check.title}</strong>
+          <span>{check.message}</span>
+          {check.action && <small>{check.action}</small>}
+        </div>)}</div>
+      </Panel>
       <Panel>
         <PanelTitle title="Últimas empresas cadastradas" subtitle="Matrícula base usada no login de usuários internos." />
         <div className="table-like">{state.organizations.slice(0, 6).map((company) => <div className="task-row compact" key={company.id}><span className="dot gold"/><div><strong>{company.tradeName || company.name}</strong><small>Matrícula {company.registrationCode} · {company.responsibleName || "admin pendente"}</small></div><StatusBadge tone={company.accessBlocked ? "red" : "green"}>{company.accessBlocked ? "Bloqueada" : company.status}</StatusBadge><span>{company.plan}</span></div>)}</div>
@@ -75,6 +86,15 @@ export function DashboardPage({ state, setPage }: FeaturePageProps) {
       <Kpi icon={UserCheck} label="Presentes hoje" value={presentToday} note={`${pointOccurrences} ocorrências de ponto`} tone="green" />
       <Kpi icon={Banknote} label="Custas pendentes" value={money(state.costEntries.filter((item) => item.status === "Pendente").reduce((sum, item) => sum + item.amount, 0))} note="guias, diligências e correspondentes" tone="gold" />
     </div>
+
+    <Panel>
+      <PanelTitle title="Prontidão comercial v4.5" subtitle="Verificações rápidas de Supabase, multiempresa, portal, LGPD e permissões." />
+      <div className="readiness-grid">{readinessChecks.map((check) => <div className={`readiness-card ${check.level}`} key={check.key}>
+        <strong>{check.title}</strong>
+        <span>{check.message}</span>
+        {check.action && <small>{check.action}</small>}
+      </div>)}</div>
+    </Panel>
     <Panel><PanelTitle title="Filtros executivos" subtitle="Base preparada para filtrar por período, área, unidade, equipe, advogado, cliente, status e prioridade." />
       <div className="quick-form"><Field label="Área"><select><option>Todas</option>{Array.from(new Set(state.processes.map((p)=>p.area))).map((area)=><option key={area}>{area}</option>)}</select></Field><Field label="Unidade"><select><option>Todas</option>{state.units.map((unit)=><option key={unit.id}>{unit.name}</option>)}</select></Field><Field label="Equipe"><select><option>Todas</option>{state.teams.map((team)=><option key={team.id}>{team.name}</option>)}</select></Field><Field label="Advogado"><select><option>Todos</option>{state.employees.map((employee)=><option key={employee.id}>{employee.name}</option>)}</select></Field></div>
     </Panel>

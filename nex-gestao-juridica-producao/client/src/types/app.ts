@@ -22,7 +22,10 @@ export type PageKey =
   | "auditoria"
   | "integracoes"
   | "empresas"
-  | "configuracoes";
+  | "configuracoes"
+  | "status"
+  | "onboarding"
+  | "assinatura";
 
 
 export type PermissionKey =
@@ -534,6 +537,21 @@ export type Organization = Archiveable & {
   blockedReason?: string;
   createdBy?: string;
   supportMode?: boolean;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStatus?: string;
+  billingEmail?: string;
+  billingMode?: "stripe" | "manual_trial" | "lifetime_exempt" | "manual" | string;
+  manualTrialEnabled?: boolean;
+  manualTrialStartedAt?: string;
+  manualTrialDisabledAt?: string;
+  manualTrialDisabledBy?: string;
+  manualTrialReason?: string;
+  billingExemptForever?: boolean;
+  billingExemptReason?: string;
+  billingExemptGrantedAt?: string;
+  billingExemptGrantedBy?: string;
+  billingNotes?: string;
 };
 
 export type Unit = Archiveable & {

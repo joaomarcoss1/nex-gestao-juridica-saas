@@ -21,6 +21,9 @@ import {
   CalendarDays,
   Network,
   Building2,
+  Activity,
+  Rocket,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -80,6 +83,9 @@ export const pages: Array<{ key: PageKey; label: string; icon: LucideIcon; descr
   { key: "automacoes", label: "Automações", icon: Zap, description: "Regras sem IA" },
   { key: "auditoria", label: "Auditoria", icon: ScrollText, description: "Logs e LGPD" },
   { key: "integracoes", label: "Integrações", icon: PlugZap, description: "APIs externas" },
+  { key: "status", label: "Status do Sistema", icon: Activity, description: "Diagnóstico comercial e produção" },
+  { key: "onboarding", label: "Onboarding", icon: Rocket, description: "Primeira configuração assistida" },
+  { key: "assinatura", label: "Assinatura", icon: CreditCard, description: "Planos, Stripe e cobrança" },
   { key: "configuracoes", label: "Configurações", icon: Settings, description: "Segurança e produção" },
 ];
 

@@ -25,6 +25,9 @@ export const routePermissions: Record<string, PermissionKey> = {
   auditoria: "audit.view",
   integracoes: "integrations.view",
   configuracoes: "settings.view",
+  status: "settings.view",
+  onboarding: "settings.view",
+  assinatura: "financial.view",
 };
 
 const actionPermissions: Partial<Record<EntityName, Partial<Record<string, PermissionKey>>>> = {

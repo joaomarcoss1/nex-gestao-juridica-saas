@@ -23,6 +23,9 @@ import { RelatoriosPage } from "@/features/relatorios/pages/RelatoriosPage";
 import { AuditoriaPage } from "@/features/auditoria/pages/AuditoriaPage";
 import { IntegracoesPage } from "@/features/integracoes/pages/IntegracoesPage";
 import { ConfiguracoesPage } from "@/features/configuracoes/pages/ConfiguracoesPage";
+import { StatusSistemaPage } from "@/features/status/pages/StatusSistemaPage";
+import { OnboardingPage } from "@/features/onboarding/pages/OnboardingPage";
+import { AssinaturaPage } from "@/features/assinatura/pages/AssinaturaPage";
 import { EquipePage } from "@/features/equipe/pages/EquipePage";
 import { EmpresasPage } from "@/features/empresas/pages/EmpresasPage";
 import { ModulosJuridicosPage } from "@/features/modulos/pages/ModulosJuridicosPage";
@@ -36,7 +39,7 @@ type RouteState = { page: PageKey; detail?: "cliente" | "processo" | "financeiro
 
 function parseRoute(pathname: string): RouteState {
   const parts = pathname.replace(/^\//, "").split("/").filter(Boolean);
-  const valid: PageKey[] = ["dashboard", "crm", "clientes", "processos", "tarefas", "prazos", "agenda", "documentos", "financeiro", "precificacao", "portal", "chat", "ponto", "relatorios", "equipe", "empresas", "modulos", "folha", "automacoes", "auditoria", "integracoes", "configuracoes"];
+  const valid: PageKey[] = ["dashboard", "crm", "clientes", "processos", "tarefas", "prazos", "agenda", "documentos", "financeiro", "precificacao", "portal", "chat", "ponto", "relatorios", "equipe", "empresas", "modulos", "folha", "automacoes", "auditoria", "integracoes", "status", "onboarding", "assinatura", "configuracoes"];
   if (!parts.length) return { page: "dashboard" };
   if (parts[0] === "clientes" && parts[1]) return { page: "clientes", detail: "cliente", id: parts[1] };
   if (parts[0] === "processos" && parts[1]) return { page: "processos", detail: "processo", id: parts[1] };
@@ -105,6 +108,9 @@ export default function App() {
       {!denied && !route.detail && route.page === "modulos" && <ModulosJuridicosPage {...props} />}
       {!denied && !route.detail && route.page === "auditoria" && <AuditoriaPage {...props} />}
       {!denied && !route.detail && route.page === "integracoes" && <IntegracoesPage {...props} />}
+      {!denied && !route.detail && route.page === "status" && <StatusSistemaPage {...props} />}
+      {!denied && !route.detail && route.page === "onboarding" && <OnboardingPage {...props} />}
+      {!denied && !route.detail && route.page === "assinatura" && <AssinaturaPage {...props} />}
       {!denied && !route.detail && route.page === "configuracoes" && <ConfiguracoesPage {...props} />}
     </AppShell>
     <ToastStack toasts={toasts} />

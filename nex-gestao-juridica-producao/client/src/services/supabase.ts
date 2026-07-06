@@ -57,7 +57,7 @@ export const supabase: SupabaseClient | null = hasValidSupabaseConfig
       },
       global: {
         headers: {
-          "x-nex-app": "nex-gestao-juridica-v40-estabilizacao-enterprise",
+          "x-nex-app": "nex-gestao-juridica-v45-estabilizacao-comercial",
         },
       },
     })
