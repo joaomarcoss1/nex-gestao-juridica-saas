@@ -1,0 +1,2 @@
+import { Button } from "@/components/ui/Primitives";
+export function ConfirmDialog({ open, title, message, onCancel, onConfirm }: { open: boolean; title: string; message?: string; onCancel: () => void; onConfirm: () => void }) { if (!open) return null; return <div className="modal-backdrop"><div className="modal-card"><h2>{title}</h2>{message && <p>{message}</p>}<div className="modal-actions"><Button variant="ghost" onClick={onCancel}>Cancelar</Button><Button variant="danger" onClick={onConfirm}>Confirmar</Button></div></div></div>; }
