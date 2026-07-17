@@ -1,0 +1,48 @@
+{
+  "name": "nex-gestao-juridica",
+  "version": "5.2.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "start": "vite preview --host 127.0.0.1 --port 4173",
+    "check": "npm run typecheck",
+    "audit": "npm audit --audit-level=high",
+    "lint": "node scripts/static-checks.mjs && npm run typecheck",
+    "validate": "npm run validate:local && npm run test:migrations && npm run test:integration && npm run test:rls && npm run test:concurrency",
+    "test:logic": "npm run test",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "test:integration": "node scripts/live-supabase-suite.mjs integration",
+    "test:e2e": "playwright test",
+    "validate:full": "npm run validate && npm run test:e2e",
+    "test:contracts": "vitest run --config vitest.integration.config.ts --maxWorkers=2",
+    "test:migrations": "node scripts/live-supabase-suite.mjs migrations",
+    "test:rls": "node scripts/live-supabase-suite.mjs rls",
+    "test:concurrency": "node scripts/live-supabase-suite.mjs concurrency",
+    "validate:local": "npm run lint && npm run test && npm run test:contracts && npm run build && npm run audit",
+    "test:unit": "npm test"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "recharts": "^2.15.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^24.7.0",
+    "@types/react": "^19.2.1",
+    "@types/react-dom": "^19.2.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
+    "typescript": "5.9.3",
+    "vite": "^7.1.7",
+    "vitest": "^3.2.7"
+  }
+}
